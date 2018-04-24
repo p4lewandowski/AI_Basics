@@ -1,157 +1,103 @@
 import numpy as np
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
+from sklearn.datasets.samples_generator import make_blobs, make_classification
+import random
+import tkinter as tk
 
-def perceptron_train(x, y, z, eta, t):
-    # Initializing parameters for the Perceptron
-    w = np.zeros(len(x[0]))  # initial weights
-    #print(x[0]) [1. 1.60682619 0.99783134]
-    #print(w) [0. 0. 0.]
-    n = 0
+class Perceptron(object):
 
-    # Initializing additional parameters to compute sum-of-squared errors
-    yhat_vec = np.ones(len(y))  # vector for predictions
-    errors = np.ones(len(y))  # vector for errors (actual - predictions)
-    J = []  # vector for the SSE cost function
+    def __init__(self, X, Y, X_test, Y_test):
+        #self.epochs = epochs
+        self.X = X
+        self.Y = Y
+        self.W = np.random.rand(1, len(X[:, 0]))
+        self.b = random.uniform(0.0, 1.0)
+        self.X_t = X_test
+        self.Y_t = Y_test
 
-    while n < t:
-        for i in range(0, len(x)):
-            # summation step
-            f = np.dot(x[i], w)
+        self.perceptron_training(self.X, self.Y)
 
+    def activation_fn(self, a):
+        return 1 if a > 0 else 0
+
+    def predict(self, Xi):
+        a = np.dot(self.W,Xi) + self.b
+        y = self.activation_fn(a)
+        return y
+
+    def perceptron_training(self, X, Y):
+        seen = []; i = 0; err = 1; check_req = 0
+        while(len(seen) != len(X[0, :])):
+           y = self.predict(X[:,i])
+           err = Y[i] - y
+           if(err != 0):
+               self.W += + np.dot(err, np.transpose(X[:, i]))
+               self.b += err
+               seen.clear()
+               check_req = 1
+           else:
+               if i not in seen:
+                    seen.append(i)
+               i += 1
+               if(check_req == 1):
+                   i = 0
+                   check_req = 0
+
+        self.visualize_plot(self.X, self.Y, division = 1)
+        self.perceptron_test()
+
+    def perceptron_test(self):
+        y_pred = []
+        print(len(self.X_t))
+        for i in range(0, len(self.X_t[0, :])):
+            f = np.dot(self.W, self.X_t[:, i]) + self.b
             # activation function
-            if f >= z:
-                yhat = 1.
+            if f > 0: # 0 - our treshold
+                yhat = 1
             else:
-                yhat = 0.
-            yhat_vec[i] = yhat
+                yhat = 0
+            y_pred.append(yhat)
 
-            # updating the weights
-            for j in range(0, len(w)):
-                w[j] = w[j] + eta * (y[i] - yhat) * x[i][j]
+        print(y_pred)
+        print (self.Y_t)
+        sum_t = sum(y_pred)
+        sum_perceptron = sum(self.Y_t)
+        if (sum_t == sum_perceptron): print ("Proper classification")
+        else: print ("Improper classification")
+        self.visualize_plot(self.X, self.Y, self.X_t, self.Y_t, division =1, test =1, )
 
-        n += 1
+    def visualize_plot(self, X, Y,  X_t = [], Y_t = [], division = 0, test = 0):
+        plt.ion()
+        plt.scatter(X[0, :], X[1, :], s=50, linewidths=1, c=Y)
 
-        # computing the sum-of-squared errors
-        for i in range(0, len(y)):
-            errors[i] = (y[i] - yhat_vec[i]) ** 2
-        J.append(0.5 * np.sum(errors))
+        if (division == 1):
+            x1 = -self.b/self.W[:,1]
+            x2 = -self.b/self.W[:,0]
+            plt.plot([0, x2], [x1, 0])
 
-    return w, J
+        if (test == 1):
+            plt.scatter(X_t[0, :], X_t[1, :], s=50, marker = "*", linewidths=1, c=Y_t)
 
-def perceptron_test(x, w, z, eta, t):
-    y_pred = []
-    for i in range(0, len(x-1)):
-        f = np.dot(x[i], w)
+        try:
+            plt.pause(0.2);
+        except tk.TclError:
+            pass
+        plt.show(block=True)
 
-            # activation function
-        if f > z:
-            yhat = 1
-        else:
-            yhat = 0
-        y_pred.append(yhat)
-    return y_pred
+if __name__ == '__main__':
+    ### Create data
+    size_of_elem = 40
+    X, Y = make_classification(n_features=2, n_samples=size_of_elem, n_redundant=0, n_informative=1,
+                               n_clusters_per_class=1, class_sep = 2.0)
+    #X, Y = make_blobs(n_samples=size_of_elem, centers=2, n_features=2)
 
-def decision_boundary_plot():
-    # plot the decision boundary
-    # 0 = w0x0 + w1x1 + w2x2
-    # x2 = (-w0x0-w1x1)/w2
+    ### Data Manipulation
+    X = np.transpose(X)
+    Y = np.transpose(Y)
+    X_train = X[:,0:int(0.7 * size_of_elem)]  # 70 percent to training set
+    X_test = X[:,int(0.7 * size_of_elem): size_of_elem]  # 30 percent to testing
+    Y_train = Y[0:int(0.7 * size_of_elem)]  # 70 percent to training set
+    Y_test = Y[int(0.7 * size_of_elem): size_of_elem]  # 30 percent to testing
 
-    min = np.min(x_test[:, 1])
-    max = np.max(x_test[:, 1])
-    x1 = np.linspace(min, max, 100)
-
-    def x2(x1, w):
-        w0 = w[0]
-        w1 = w[1]
-        w2 = w[2]
-        x2 = []
-        for i in range(0, len(x1 - 1)):
-            x2_temp = (-w0 - w1 * x1[i]) / w2
-            x2.append(x2_temp)
-        return x2
-
-    x_2 = np.asarray(x2(x1, w))
-
-    plt.scatter(features[:, 1], features[:, 2], c=colour)
-    plt.plot(x1, x_2)
-    plt.show()
-
-##### MAIN CODE #####
-
-# setting the random seed to reproduce results
-np.random.seed(5)
-
-# number of observations
-obs = 1000
-
-# generating synthetic data from multivariate normal distribution
-class_zeros = np.random.multivariate_normal([1, 1], [[1., .95], [.95, 1.]], obs)
-class_ones = np.random.multivariate_normal([1, 5], [[1., .85], [.85, 1.]], obs)
-
-# generating a column of ones as a dummy feature to create an intercept
-intercept = np.ones((2 * obs, 1))
-
-# vertically stacking the two classes (still 2x1000)
-features = np.vstack((class_zeros, class_ones)).astype(np.float32)
-
-# putting in the dummy feature column - bias? 3x1000
-features = np.hstack((intercept, features))
-
-# creating the labels for the two classes
-label_zeros = np.zeros((obs,1))
-label_ones = np.ones((obs, 1))
-
-# stacking the labels, and then adding them to the dataset
-# 4 x 1000    [intercept, feature1, feature 2, label]
-labels = np.vstack((label_zeros, label_ones))
-dataset = np.hstack((features, labels))
-colour = labels.reshape(2000,)
-
-# scatter plot to visualize the two classes (red=1, blue=0)
-plt.scatter(features[:, 1], features[:, 2], c = colour)
-plt.show()
-
-# shuffling the data to make the sampling random
-np.random.shuffle(dataset)
-
-# splitting the data into train/test sets
-train = dataset[0:int(0.7 * (obs * 2))] # 70 percent to training set
-test = dataset[int(0.7 * (obs * 2)):(obs * 2)] # 30 percent to testing
-
-########## Training the Perceptron ##########
-# Inputs
-# x:   feature data
-# y:   outputs
-# z:   threshold
-# eta: learning rate
-# t:   number of iterations
-
-# reshaping the data for the function
-x_train = train[:, 0:3] #incercept, feature1 and 2
-y_train = train[:, 3] # label
-
-x_test = test[:, 0:3]
-y_test = test[:, 3]
-
-
-z = 0.0  # threshold
-eta = 0.1  # learning rate
-t = 5  # number of iterations
-
-w, J = perceptron_train(x_train, y_train, z, eta, t)
-epoch = np.linspace(1, len(J), len(J))
-
-print ("The weights are: " + str(w) + " The sum-of-squared errors are: " + str(J))
-
-# plt.figure(1)
-# plt.plot(epoch, J)
-# plt.xlabel('Epoch')
-# plt.ylabel('Sum-of-Squared Error')
-# plt.title('Perceptron Convergence')
-# plt.show()
-
-decision_boundary_plot()
-
-y_pred = perceptron_test(x_test, w, z, eta, t)
-plt.scatter(x_test[:, 1], x_test[:, 2], c = y_pred)
-plt.show()
+    ### create a perceptron
+    perceptron = Perceptron(X_train, Y_train, X_test, Y_test)
