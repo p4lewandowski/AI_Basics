@@ -3,6 +3,8 @@ from matplotlib import pyplot as plt
 from sklearn.datasets.samples_generator import make_blobs, make_classification
 import random
 import tkinter as tk
+from mlxtend.plotting import plot_decision_regions
+
 
 class Perceptron(object):
 
@@ -48,7 +50,6 @@ class Perceptron(object):
 
     def perceptron_test(self):
         y_pred = []
-        print(len(self.X_t))
         for i in range(0, len(self.X_t[0, :])):
             f = np.dot(self.W, self.X_t[:, i]) + self.b
             # activation function
@@ -88,7 +89,7 @@ if __name__ == '__main__':
     ### Create data
     size_of_elem = 40
     X, Y = make_classification(n_features=2, n_samples=size_of_elem, n_redundant=0, n_informative=1,
-                               n_clusters_per_class=1, class_sep = 2.0)
+                               n_clusters_per_class=1, class_sep = 1.0)
     #X, Y = make_blobs(n_samples=size_of_elem, centers=2, n_features=2)
 
     ### Data Manipulation
