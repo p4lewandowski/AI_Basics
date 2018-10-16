@@ -6,8 +6,8 @@ population_size = 10
 DNA_size = 7 #sie of binary string
 cycles = 1000
 population = ["" for x in range(population_size)] #declaring empty array of size population
-crossover_probability = 0.75
-mutation_probability = 0.05
+crossover_probability = 0.8
+mutation_probability = 0.01
 accomplishment_value = 0 # condition fo terminate cycles
 #arrays for plot
 data = np.array(list([]))
@@ -68,24 +68,24 @@ while sequence < cycles:
             locus = random.randint(0, DNA_size-1) #span of range
             population[i] = population[i][:locus] + str(1 - int(population[i][locus])) + population[i][locus+1:]
 
-    ###### check how far to accomplush #####
+    ###### check how far to accomplish #####
     ###### win condition ######
+    accomplishment = 0
     for i in range(0, population_size):
-        accomplishment_value += (int(population[i], 2))
-    accomplishment_condition = accomplishment_value / population_size
-
+        if int(population[i], 2) >= 126:
+            accomplishment +=1
     if sequence % 1 == 0:
         sequence_col = np.append(sequence_col, sequence)
-        data_col = np.append(data_col, accomplishment_condition)
+        #data_col = np.append(data_col, accomplishment_condition)
     #### if acomplished - break %%%%
-    if accomplishment_condition >=125:
+    if accomplishment == population_size:
          break
 
 
-data = np.vstack([sequence_col, data_col])
 
 print("Cycle number: " + str(sequence) + " " + str(new_population))
-#np.savetxt('Sequence{}Population{}.txt'.format(sequence,population_size), data, newline='\n')
-plt.plot([data[0]], [data[1]], '-ro')
-plt.show()
+# data = np.vstack([sequence_col, data_col])
+# np.savetxt('Sequence{}Population{}.txt'.format(sequence,population_size), data, newline='\n')
+# plt.plot([data[0]], [data[1]], '-ro')
+# plt.show()
 
